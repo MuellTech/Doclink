@@ -42,6 +42,17 @@
                             Please select a valid date and time.
                         </div>
                     </div>
+                    <div class="mb-4">
+                        <label for="priority" class="form-label">Priority Level</label>
+                        <select class="form-select" id="priority" name="priority" required>
+                            <option value="normal">Normal</option>
+                            <option value="urgent">Urgent</option>
+                            <option value="emergency">Emergency</option>
+                        </select>
+                        <div class="invalid-feedback">
+                            Please select a priority level.
+                        </div>
+                    </div>
                     <div class="d-grid">
                         <button type="submit" class="btn btn-primary">Book Appointment</button>
                     </div>

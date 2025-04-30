@@ -55,6 +55,9 @@
                                     {% else %}
                                         <span class="status-badge active">Active</span>
                                     {% endif %}
+                                    {% if appointment.priority != 'normal' %}
+                                        <span class="priority-badge {{ appointment.priority }}">{{ appointment.priority|title }}</span>
+                                    {% endif %}
                                 </div>
                                 <div class="card-body">
                                     <div class="info-grid">
@@ -126,6 +129,9 @@
                                         <span class="status-badge cancelled">Cancelled</span>
                                     {% else %}
                                         <span class="status-badge active">Active</span>
+                                    {% endif %}
+                                    {% if appointment.priority != 'normal' %}
+                                        <span class="priority-badge {{ appointment.priority }}">{{ appointment.priority|title }}</span>
                                     {% endif %}
                                 </div>
                                 <div class="card-body">
@@ -251,6 +257,28 @@
     }
 
     .status-badge.cancelled {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    .priority-badge {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+
+    .priority-badge.normal {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .priority-badge.urgent {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .priority-badge.emergency {
         background: #f8d7da;
         color: #721c24;
     }

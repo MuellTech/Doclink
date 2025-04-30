@@ -38,7 +38,7 @@ class Doctor(UserMixin, db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     specialization = db.Column(db.String(100), nullable=False)
     phone = db.Column(db.String(20), nullable=False)
-    nier_id = db.Column(db.String(50), unique=True, nullable=False)
+    npi_id = db.Column(db.String(50), unique=True, nullable=False)
     state = db.Column(db.String(50), nullable=False)
     address = db.Column(db.String(200), nullable=False)
     password_hash = db.Column(db.String(128), nullable=False)
@@ -73,6 +73,7 @@ class Appointment(db.Model):
     receiver_id = db.Column(db.Integer, db.ForeignKey('doctor.id'), nullable=False)
     date_time = db.Column(db.DateTime, nullable=False)
     status = db.Column(db.String(20), default='pending')  # pending, active, cancelled
+    priority = db.Column(db.String(20), default='normal')  # emergency, urgent, normal
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 class Message(db.Model):
@@ -103,18 +104,18 @@ def login():
         return redirect(url_for('consultation'))
     
     if request.method == 'POST':
-        nier_id = request.form.get('nier_id')
+        npi_id = request.form.get('npi_id')
         password = request.form.get('password')
         
-        print(f"Login attempt with NIER ID: {nier_id}")
+        print(f"Login attempt with NPI ID: {npi_id}")
         print(f"Password provided: {bool(password)}")
         
-        if not nier_id or not password:
-            flash('Please provide both NIER ID and password', 'error')
+        if not npi_id or not password:
+            flash('Please provide both NPI ID and password', 'error')
             return render_template('login.html')
         
         try:
-            doctor = Doctor.query.filter_by(nier_id=nier_id).first()
+            doctor = Doctor.query.filter_by(npi_id=npi_id).first()
             if doctor:
                 print(f"Found doctor: {doctor.full_name}")
                 print(f"Stored password hash: {doctor.password_hash}")
@@ -128,8 +129,8 @@ def login():
                     print("Password check failed")
                     flash('Invalid password', 'error')
             else:
-                print("No doctor found with that NIER ID")
-                flash('No doctor found with that NIER ID', 'error')
+                print("No doctor found with that NPI ID")
+                flash('No doctor found with that NPI ID', 'error')
         except Exception as e:
             print(f"Error during login: {str(e)}")
             flash('An error occurred during login. Please try again.', 'error')
@@ -142,9 +143,9 @@ def register():
         return redirect(url_for('consultation'))
     
     if request.method == 'POST':
-        # Check if NIER ID already exists
-        if Doctor.query.filter_by(nier_id=request.form.get('nier_id')).first():
-            flash('NIER ID already registered')
+        # Check if NPI ID already exists
+        if Doctor.query.filter_by(npi_id=request.form.get('npi_id')).first():
+            flash('NPI ID already registered')
             return redirect(url_for('register'))
         
         # Check if email already exists
@@ -163,7 +164,7 @@ def register():
             email=request.form.get('email'),
             specialization=request.form.get('specialization'),
             phone=request.form.get('phone'),
-            nier_id=request.form.get('nier_id'),
+            npi_id=request.form.get('npi_id'),
             state=request.form.get('state'),
             address=request.form.get('address'),
             avatar_path=None  # Set default avatar path to None
@@ -268,6 +269,7 @@ def book_appointment():
     if request.method == 'POST':
         doctor_id = request.form.get('doctor_id')
         date_time = datetime.strptime(request.form.get('appointment_datetime'), '%Y-%m-%dT%H:%M')
+        priority = request.form.get('priority', 'normal')
         
         if not doctor_id:
             flash('Please select a doctor', 'error')
@@ -284,7 +286,8 @@ def book_appointment():
             sender_id=current_user.id,
             receiver_id=doctor_id,
             date_time=date_time,
-            status='pending'
+            status='pending',
+            priority=priority
         )
         
         db.session.add(appointment)
@@ -429,7 +432,7 @@ def debug_users():
     doctors = Doctor.query.all()
     return jsonify([{
         'id': d.id,
-        'nier_id': d.nier_id,
+        'npi_id': d.npi_id,
         'full_name': d.full_name,
         'email': d.email
     } for d in doctors])
@@ -484,7 +487,7 @@ if __name__ == '__main__':
                 'email': 'john.smith@example.com',
                 'specialization': 'Cardiology',
                 'phone': '1234567890',
-                'nier_id': 'NIER001',
+                'npi_id': 'NPI001',
                 'state': 'CA',
                 'address': '123 Medical Center Dr',
                 'password': 'doctor123'
@@ -494,7 +497,7 @@ if __name__ == '__main__':
                 'email': 'sarah.johnson@example.com',
                 'specialization': 'Neurology',
                 'phone': '2345678901',
-                'nier_id': 'NIER002',
+                'npi_id': 'NPI002',
                 'state': 'NY',
                 'address': '456 Hospital Ave',
                 'password': 'doctor123'
@@ -504,7 +507,7 @@ if __name__ == '__main__':
                 'email': 'michael.chen@example.com',
                 'specialization': 'Pediatrics',
                 'phone': '3456789012',
-                'nier_id': 'NIER003',
+                'npi_id': 'NPI003',
                 'state': 'TX',
                 'address': '789 Children\'s Way',
                 'password': 'doctor123'
@@ -514,7 +517,7 @@ if __name__ == '__main__':
                 'email': 'emily.brown@example.com',
                 'specialization': 'Dermatology',
                 'phone': '4567890123',
-                'nier_id': 'NIER004',
+                'npi_id': 'NPI004',
                 'state': 'FL',
                 'address': '321 Skin Care Blvd',
                 'password': 'doctor123'
@@ -529,7 +532,7 @@ if __name__ == '__main__':
                 email=doctor_data['email'],
                 specialization=doctor_data['specialization'],
                 phone=doctor_data['phone'],
-                nier_id=doctor_data['nier_id'],
+                npi_id=doctor_data['npi_id'],
                 state=doctor_data['state'],
                 address=doctor_data['address'],
                 avatar_path=None
@@ -537,7 +540,7 @@ if __name__ == '__main__':
             doctor.set_password(doctor_data['password'])
             db.session.add(doctor)
             print(f"Created doctor: {doctor_data['full_name']}")
-            print(f"NIER ID: {doctor_data['nier_id']}")
+            print(f"NPI ID: {doctor_data['npi_id']}")
             print(f"Password: {doctor_data['password']}")
             print("----------------------")
         
